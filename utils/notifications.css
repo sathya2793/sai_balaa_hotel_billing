@@ -1,0 +1,150 @@
+/* Compact toast notifications */
+.compact-toast {
+  border-radius: 10px !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  font-size: 14px !important;
+}
+
+.compact-title {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.3rem !important;
+  color: #333 !important;
+}
+
+.compact-content {
+  font-size: 0.9rem !important;
+  color: #666 !important;
+}
+
+/* Mini toast notifications (most compact) */
+.mini-toast {
+  border-radius: 8px !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2) !important;
+  font-size: 13px !important;
+  min-height: 50px !important;
+}
+
+.mini-content {
+  font-size: 0.85rem !important;
+  color: #333 !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+}
+
+.success-mini {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%) !important;
+  color: white !important;
+}
+
+.success-mini .mini-content {
+  color: white !important;
+}
+
+.error-mini {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%) !important;
+  color: white !important;
+}
+
+.error-mini .mini-content {
+  color: white !important;
+}
+
+.warning-mini {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%) !important;
+  color: white !important;
+}
+
+.warning-mini .mini-content {
+  color: white !important;
+}
+
+/* Custom icons for mini toasts */
+.mini-toast .swal2-icon {
+  width: 25px !important;
+  height: 25px !important;
+  margin: 0.2rem auto !important;
+  border-width: 2px !important;
+}
+
+.mini-toast .swal2-icon-success {
+  border-color: white !important;
+}
+
+.mini-toast .swal2-icon-success [class^='swal2-success-line'] {
+  background-color: white !important;
+}
+
+.mini-toast .swal2-icon-error {
+  border-color: white !important;
+}
+
+.mini-toast .swal2-icon-error .swal2-x-mark {
+  background-color: white !important;
+}
+
+.mini-toast .swal2-icon-warning {
+  border-color: white !important;
+  color: white !important;
+}
+
+/* Timer progress bar styling */
+.mini-toast .swal2-timer-progress-bar {
+  background: rgba(255, 255, 255, 0.8) !important;
+  height: 3px !important;
+}
+
+.compact-toast .swal2-timer-progress-bar {
+  background: #667eea !important;
+  height: 3px !important;
+}
+
+/* Animation for compact notifications */
+.compact-show {
+  animation: slideInRight 0.3s ease-out !important;
+}
+
+.compact-hide {
+  animation: slideOutRight 0.3s ease-in !important;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translate3d(100%, 0, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(100%, 0, 0);
+    opacity: 0;
+  }
+}
+
+/* Keep delete confirmation normal size */
+.delete-confirmation-popup {
+  border-left: 5px solid #ff9800 !important;
+  border-radius: 15px !important;
+}
+
+.delete-confirm-btn, .delete-cancel-btn {
+  border-radius: 25px !important;
+  padding: 12px 24px !important;
+  font-weight: 500 !important;
+}
+
+.delete-confirm-btn {
+  background: linear-gradient(135deg, #5557b6 0%, #43aff7 100%) !important;
+  border: none !important;
+}
