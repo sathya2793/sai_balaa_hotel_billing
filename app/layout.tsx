@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import "../styles/globals.css";
+interface RootLayoutProps {
+  children: ReactNode;
+}
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: RootLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [userRole, setUserRole] = useState("");
@@ -16,8 +19,8 @@ export default function RootLayout({ children }) {
     const role = localStorage.getItem("userRole");
     const email = localStorage.getItem("userEmail");
     if (!email) router.push("/login");
-    setUserRole(role);
-    setUserEmail(email);
+    setUserRole(role || "");
+    setUserEmail(email || "");
   }, [pathname, router]);
 
   // Hide sidebar/topbar on login page
