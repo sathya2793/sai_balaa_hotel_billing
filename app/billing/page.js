@@ -11,18 +11,33 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
-import { FiPlus, FiTrash2, FiPrinter, FiEdit2, FiCheck, FiX } from "react-icons/fi";
+import {
+  FiPlus,
+  FiTrash2,
+  FiPrinter,
+  FiEdit2,
+  FiCheck,
+  FiX,
+} from "react-icons/fi";
 import { showSuccess, showError } from "../../utils/notifications";
 
 export default function BillingPage() {
   // Input form state:
   const initialForm = {
-  tableNumber: "", captainSearch: "", captain: null, typeInput: "1",
-  itemSearch: "", item: null, dynamicManualPrice: "", cartItems: []
-};
-const [form, setForm] = useState(initialForm);
+    tableNumber: "",
+    captainSearch: "",
+    captain: null,
+    typeInput: "1",
+    itemSearch: "",
+    item: null,
+    dynamicManualPrice: "",
+    cartItems: [],
+  };
+  const [form, setForm] = useState(initialForm);
 
-function clearForm() { setForm(initialForm); }
+  function clearForm() {
+    setForm(initialForm);
+  }
 
   // Live search state
   const [captainResults, setCaptainResults] = useState([]);
@@ -88,6 +103,13 @@ function clearForm() { setForm(initialForm); }
           }, {})
         )
       );
+      if (cap.length === 1) {
+        setForm(f => ({
+          ...f,
+          captain: cap[0],
+          captainSearch: cap[0].empId + " - " + cap[0].name
+        }));
+      }
     }
     fetch();
   }, [form.captainSearch]);
@@ -119,6 +141,14 @@ function clearForm() { setForm(initialForm); }
           }, {})
         )
       );
+      if (out.length === 1) {
+        setForm(f => ({
+          ...f,
+          item: out[0],
+          itemSearch: out[0].product_id + " - " + out[0].name,
+          dynamicManualPrice: ""
+        }));
+      }
     }
     fetch();
   }, [form.itemSearch]);
@@ -174,6 +204,24 @@ function clearForm() { setForm(initialForm); }
     }));
   }
 
+  function changeQty(idx, q) {
+    setForm((f) => ({
+      ...f,
+      cartItems: f.cartItems.map((item, i) =>
+        i === idx ? { ...item, qty: q } : item
+      ),
+    }));
+  }
+
+  function handleBlur(idx, q) {
+    setForm((f) => ({
+      ...f,
+      cartItems: f.cartItems.map((item, i) =>
+        i === idx ? { ...item, qty: Math.max(1, q) } : item
+      ),
+    }));
+  }
+
   // ========== Save: Only on Save, table added to "Active Tables" (local) ==========
   function handleSave() {
     const tn = form.tableNumber.trim();
@@ -181,7 +229,7 @@ function clearForm() { setForm(initialForm); }
       return showError("Please enter a valid (non-zero) Table Number");
     }
     if (tableOrders.hasOwnProperty(tn)) {
-        return showError(`Table Number ${tn} is already active`);
+      return showError(`Table Number ${tn} is already active`);
     }
     if (!form.captain) return showError("Select a captain/supplier");
     if (!form.cartItems.length) return showError("Add items");
@@ -341,22 +389,21 @@ function clearForm() { setForm(initialForm); }
     )
   );
 
-   async function confirmPayment() {
+  async function confirmPayment() {
     if (!currentPayBill) return;
-    try{    
+    try {
       await updateDoc(doc(db, "bills", currentPayBill.id), {
-      status: "paid",
-      paidAt: serverTimestamp(),
-      paymentMode: payMode,
-      cashGiven: payMode === "Cash" ? parseFloat(payAmount) : null,
-      cashBack: payMode === "Cash" ? payReturn : null,
-    });
-    showSuccess("Payment complete");
-    closePayModal();
-    loadPrintedBills();
-    }
-    catch(err){
-        console.log("🚀 ~ confirmPayment ~ err:", err)
+        status: "paid",
+        paidAt: serverTimestamp(),
+        paymentMode: payMode,
+        cashGiven: payMode === "Cash" ? parseFloat(payAmount) : null,
+        cashBack: payMode === "Cash" ? payReturn : null,
+      });
+      showSuccess("Payment complete");
+      closePayModal();
+      loadPrintedBills();
+    } catch (err) {
+      console.log("🚀 ~ confirmPayment ~ err:", err);
     }
   }
 
@@ -387,21 +434,20 @@ function clearForm() { setForm(initialForm); }
     if (!cancelReason.trim()) return showError("Enter reason");
     await updateDoc(doc(db, "bills", currentCancelBill.id), {
       status: "cancelled",
-      cancelReason
+      cancelReason,
     });
     showSuccess("Bill cancelled");
     closeCancelModal();
     loadPrintedBills();
   }
 
-  function paymentCash(billAmount,currentValue){
+  function paymentCash(billAmount, currentValue) {
     let total = currentValue - billAmount.toFixed(2);
     setPayAmount(currentValue);
-    setPayReturn(total)
+    setPayReturn(total);
   }
   // ========== UI Render ==========
 
-  
   return (
     <div className="billing-flex-layout">
       <main className="billing-main">
@@ -426,9 +472,22 @@ function clearForm() { setForm(initialForm); }
               <label>Captain/Supplier</label>
               <input
                 value={form.captainSearch}
+                placeholder="Search employees by ID or name"
                 onChange={(e) =>
                   setForm((f) => ({ ...f, captainSearch: e.target.value }))
                 }
+                onKeyDown={(e) => {
+                  if ((e.key === "Enter" || e.key === "Tab") && captainResults.length > 0) {
+                    e.preventDefault();
+                    const cap = captainResults[0];
+                    setForm(f => ({
+                      ...f,
+                      captain: cap,
+                      captainSearch: cap.empId + " - " + cap.name
+                    }));
+                    setCaptainResults([]);
+                  }
+                }}
               />
               {captainResults.length > 0 && (
                 <ul className="autocomplete-list">
@@ -468,12 +527,26 @@ function clearForm() { setForm(initialForm); }
               <label>Item</label>
               <input
                 value={form.itemSearch}
+                placeholder="Search item by ID or name"
                 onChange={(e) =>
                   setForm((f) => ({
                     ...f,
                     itemSearch: e.target.value,
                   }))
                 }
+                onKeyDown={(e) => {
+                  if ((e.key === "Enter" || e.key === "Tab") && itemResults.length > 0) {
+                    e.preventDefault();
+                    const it = itemResults[0];
+                    setForm(f => ({
+                      ...f,
+                      item: it,
+                      itemSearch: it.product_id + " - " + it.name,
+                      dynamicManualPrice: ""
+                    }));
+                    setItemResults([]);
+                  }
+                }}
               />
               {itemResults.length > 0 && (
                 <ul className="autocomplete-list">
@@ -489,7 +562,8 @@ function clearForm() { setForm(initialForm); }
                         }))
                       }
                     >
-                      {it.product_id} - {it.name} {it.dynamicPrice ? "(Dynamic)" : ""}
+                      {it.product_id} - {it.name}{" "}
+                      {it.dynamicPrice ? "(Dynamic)" : ""}
                     </li>
                   ))}
                 </ul>
@@ -513,7 +587,13 @@ function clearForm() { setForm(initialForm); }
             <button className="billing-btn primary" onClick={addItem}>
               <FiPlus /> Add
             </button>
-            <button type="button" className="billing-btn secondary" onClick={clearForm}><FiX /> Clear</button>
+            <button
+              type="button"
+              className="billing-btn secondary"
+              onClick={clearForm}
+            >
+              <FiX /> Clear
+            </button>
           </div>
 
           {form.cartItems.length > 0 && (
@@ -538,7 +618,8 @@ function clearForm() { setForm(initialForm); }
                           type="number"
                           value={it.qty}
                           min="1"
-                          onChange={(e) => changeQty(idx, +e.target.value)}
+                          onChange={(e) => changeQty(idx, e.target.value === "" ? "" : +e.target.value)}
+                          onBlur={(e) => handleBlur(idx, +e.target.value || 1)}
                         />
                       </td>
                       <td>₹{(it.qty * it.price).toFixed(2)}</td>
@@ -684,13 +765,13 @@ function clearForm() { setForm(initialForm); }
                     <button
                       className="billing-btn success"
                       onClick={() => openPayModal(bill)}
-                      >
+                    >
                       Pay
                     </button>
                     <button
                       className="billing-btn danger"
-                      onClick={() => openCancelModal(bill)} 
-                      >
+                      onClick={() => openCancelModal(bill)}
+                    >
                       Cancel
                     </button>
                   </td>
@@ -698,50 +779,87 @@ function clearForm() { setForm(initialForm); }
               ))}
             </tbody>
           </table>
-        {/* Payment Modal */}
-      {paymentModal && currentPayBill && (
-        <div className="billing-modal-overlay" onClick={closePayModal}>
-          <div className="billing-modal-content" onClick={e => e.stopPropagation()}>
-            <h2>Pay Bill {currentPayBill.billNo}</h2>
-            <p>Total: ₹{currentPayBill.total.toFixed(2)}</p>
-            <label>Payment Mode</label>
-            <select value={payMode} onChange={e => setPayMode(e.target.value)}>
-              <option>Cash</option>
-              <option>QR</option>
-              <option>Card</option>
-              <option>GPay</option>
-            </select>
-            {payMode === "Cash" && (
-              <>
-                <label>Amount Given</label>
-                <input type="number" value={payAmount} min={currentPayBill.total}
-                  onChange={e => paymentCash(currentPayBill.total,e.target.value)}
-                />
-                <div>Return: ₹{payReturn}</div>
-              </>
-            )}
-            <div className="actions">
-              <button onClick={confirmPayment} className="billing-btn success"><FiCheck /> Confirm</button>
-              <button onClick={closePayModal} className="billing-btn secondary">Close</button>
+          {/* Payment Modal */}
+          {paymentModal && currentPayBill && (
+            <div className="billing-modal-overlay" onClick={closePayModal}>
+              <div
+                className="billing-modal-content"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h2>Pay Bill {currentPayBill.billNo}</h2>
+                <p>Total: ₹{currentPayBill.total.toFixed(2)}</p>
+                <label>Payment Mode</label>
+                <select
+                  value={payMode}
+                  onChange={(e) => setPayMode(e.target.value)}
+                >
+                  <option>Cash</option>
+                  <option>QR</option>
+                  <option>Card</option>
+                  <option>GPay</option>
+                </select>
+                {payMode === "Cash" && (
+                  <>
+                    <label>Amount Given</label>
+                    <input
+                      type="number"
+                      value={payAmount}
+                      min={currentPayBill.total}
+                      onChange={(e) =>
+                        paymentCash(currentPayBill.total, e.target.value)
+                      }
+                    />
+                    <div>Return: ₹{payReturn}</div>
+                  </>
+                )}
+                <div className="actions">
+                  <button
+                    onClick={confirmPayment}
+                    className="billing-btn success"
+                  >
+                    <FiCheck /> Confirm
+                  </button>
+                  <button
+                    onClick={closePayModal}
+                    className="billing-btn secondary"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Cancel Modal */}
-      {cancelModal && currentCancelBill && (
-        <div className="billing-modal-overlay" onClick={closeCancelModal}>
-          <div className="billing-modal-content" onClick={e => e.stopPropagation()}>
-            <h2>Cancel Bill {currentCancelBill.billNo}</h2>
-            <label>Reason</label>
-            <input value={cancelReason} onChange={e => setCancelReason(e.target.value)} />
-            <div className="actions">
-              <button onClick={confirmCancel} className="billing-btn danger">Confirm Cancel</button>
-              <button onClick={closeCancelModal} className="billing-btn secondary">Close</button>
+          {/* Cancel Modal */}
+          {cancelModal && currentCancelBill && (
+            <div className="billing-modal-overlay" onClick={closeCancelModal}>
+              <div
+                className="billing-modal-content"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h2>Cancel Bill {currentCancelBill.billNo}</h2>
+                <label>Reason</label>
+                <input
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                />
+                <div className="actions">
+                  <button
+                    onClick={confirmCancel}
+                    className="billing-btn danger"
+                  >
+                    Confirm Cancel
+                  </button>
+                  <button
+                    onClick={closeCancelModal}
+                    className="billing-btn secondary"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
         </section>
       </main>
     </div>

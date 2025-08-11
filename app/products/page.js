@@ -31,8 +31,10 @@ import {
   showDeleteConfirmation,
 } from "../../utils/notifications";
 import ContentLoader from "../../components/ContentLoader";
+import { useRouter } from "next/navigation";
 
 export default function ProductsPage() {
+  const router = useRouter();
   const [userRole, setUserRole] = useState("");
   const [userName, setUserName] = useState("");
   const [products, setProducts] = useState([]);
@@ -82,6 +84,14 @@ export default function ProductsPage() {
     }
     initLoad();
   }, []);
+
+   useEffect(() => {
+    const userRole = localStorage.getItem("userRole");
+    if (userRole !== "admin" && userRole !== "manager") {
+      localStorage.clear();
+      router.replace("/login");
+    }
+  }, [router]);
 
   useEffect(() => {
   if (sections.length > 0 && !form.section) {
@@ -336,6 +346,11 @@ async function handleAddProduct(e) {
       onChange: handleFormChange,
       className: "input",
     };
+  }
+
+  if (typeof window !== "undefined") {
+    const userRole = localStorage.getItem("userRole");
+    if (userRole !== "admin" && userRole !== "manager") return null;
   }
 
   return (

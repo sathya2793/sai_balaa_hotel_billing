@@ -5,9 +5,11 @@ import { db } from "../../lib/firebase";
 import { FiEdit, FiTrash2, FiSave, FiPlus, FiSearch, FiX } from "react-icons/fi";
 import { showSuccess, showError, showDeleteConfirmation } from "../../utils/notifications";
 import ContentLoader from "../../components/ContentLoader";
+import { useRouter } from "next/navigation";
 const initialFormState = { empId: "", name: "", role: "Supplier" };
 
 export default function EmployeesPage() {
+  const router = useRouter();
   const [employees, setEmployees] = useState([]);
   const [form, setForm] = useState(initialFormState);
   const [editId, setEditId] = useState(null);
@@ -26,6 +28,13 @@ export default function EmployeesPage() {
     }
     initLoad();
  }, []);
+  useEffect(() => {
+    const userRole = localStorage.getItem("userRole");
+    if (userRole !== "admin" && userRole !== "manager") {
+      localStorage.clear();
+      router.replace("/login");
+    }
+  }, [router]);
 
   function clearForm() {
     setForm(initialFormState);
@@ -104,6 +113,11 @@ export default function EmployeesPage() {
   const indexLast = currentPage * perPage;
   const indexFirst = indexLast - perPage;
   const currentItems = filtered.slice(indexFirst, indexLast);
+
+  if (typeof window !== "undefined") {
+    const userRole = localStorage.getItem("userRole");
+    if (userRole !== "admin" && userRole !== "manager") return null;
+  }
 
   return (
     <>
