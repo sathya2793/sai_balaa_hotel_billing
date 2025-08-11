@@ -988,6 +988,7 @@
   color: #fff;
   font-weight: 700;
   padding: 0.45em;
+  text-align: start;
 }
 .billing-table td,
 .bills-table td {
