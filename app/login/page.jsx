@@ -5,7 +5,7 @@ import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/aut
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "../../lib/firebase";
 import { FiLogIn, FiKey } from "react-icons/fi";
-import { showSuccess, showError } from "../../utils/notifications";
+import { showSuccess, showError, closeNotify } from "../../utils/notifications";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,8 +29,8 @@ export default function LoginPage() {
       localStorage.setItem("userEmail", email);
       localStorage.setItem("userRole", role);
       showSuccess("Logged in!");
-
       router.push("/billing");
+       closeNotify();
     } catch (err) {
       showError(err.message || "Invalid username or password");
     }

@@ -26,6 +26,10 @@ export const showSuccess = (message, title = 'Success!') => {
   });
 };
 
+export const closeNotify = () =>{
+  Swal.close();
+}
+
 // Compact error notification helper
 export const showError = (message, title = 'Error!') => {
   return Swal.fire({
