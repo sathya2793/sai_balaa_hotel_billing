@@ -191,7 +191,7 @@ export default function ReportPage() {
               ))
             ) : (
               <tr>
-                <td colSpan="3" style={{ textAlign: "center" }}>No data</td>
+                <td colSpan="3">No data</td>
               </tr>
             )}
           </tbody>
@@ -222,7 +222,7 @@ export default function ReportPage() {
               ))
             ) : (
               <tr>
-                <td colSpan="4" style={{ textAlign: "center" }}>No data</td>
+                <td colSpan="4">No data</td>
               </tr>
             )}
           </tbody>
@@ -251,7 +251,7 @@ export default function ReportPage() {
               ))
             ) : (
               <tr>
-                <td colSpan="3" style={{ textAlign: "center" }}>No data</td>
+                <td colSpan="3">No data</td>
               </tr>
             )}
           </tbody>
@@ -282,7 +282,7 @@ export default function ReportPage() {
               ))
             ) : (
               <tr>
-                <td colSpan="4" style={{ textAlign: "center" }}>No data</td>
+                <td colSpan="4">No data</td>
               </tr>
             )}
           </tbody>
@@ -309,7 +309,7 @@ export default function ReportPage() {
               ))
             ) : (
               <tr>
-                <td colSpan="2" style={{ textAlign: "center" }}>No data</td>
+                <td colSpan="2">No data</td>
               </tr>
             )}
           </tbody>
@@ -338,7 +338,7 @@ export default function ReportPage() {
               ))
             ) : (
               <tr>
-                <td colSpan="3" style={{ textAlign: "center" }}>No data</td>
+                <td colSpan="3">No data</td>
               </tr>
             )}
           </tbody>
@@ -373,7 +373,7 @@ export default function ReportPage() {
               ))
             ) : (
               <tr>
-                <td colSpan="4" style={{ textAlign: "center" }}>
+                <td colSpan="4">
                   No cancelled bills in date range
                 </td>
               </tr>

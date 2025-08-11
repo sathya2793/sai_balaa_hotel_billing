@@ -154,7 +154,7 @@ export default function EmployeesPage() {
           </thead>
           <tbody>
             {currentItems.length === 0 && (
-              <tr><td colSpan="4" style={{ textAlign: "center" }}>No employees found</td></tr>
+              <tr><td colSpan="4">No employees found</td></tr>
             )}
             {currentItems.map(emp => (
               <tr key={emp.id}>
