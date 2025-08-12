@@ -10,6 +10,7 @@ import {
   doc,
   serverTimestamp,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import {
@@ -59,10 +60,17 @@ export default function ExpensesPage() {
   const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
   const [reportExpenses, setReportExpenses] = useState([]);
   const [reportSalaries, setReportSalaries] = useState([]);
+  const [pageReportExpenses, setPageReportExpenses] = useState(1);
+  const [pageReportSalaries, setPageReportSalaries] = useState(1);
+  const rowsPerPage = 10;
+  function newPaginateData(data, page) {
+    const start = (page - 1) * rowsPerPage;
+    return data.slice(start, start + rowsPerPage);
+  }
 
   // Pagination states
   const [page, setPage] = useState(1);
-  const perPage = 5;
+  const perPage = 10;
 
   const [loading, setLoading] = useState(true);
 
@@ -144,6 +152,24 @@ export default function ExpensesPage() {
     if (!employeeName || !salaryAmount)
       return showError("Enter employee name and amount");
 
+    // Validation: check for duplicate salary in month
+    const salaryMonth = salaryDate.substring(0, 7); // "YYYY-MM"
+    const q = query(
+      collection(db, "salaries"),
+      where("employeeName", "==", employeeName),
+      where("date", ">=", salaryMonth + "-01"),
+      where("date", "<=", salaryMonth + "-31")
+    );
+    const snap = await getDocs(q);
+    const alreadyPaid = snap.docs.some((doc) => {
+      const dateStr = doc.data().date;
+      return dateStr && dateStr.substring(0, 7) === salaryMonth;
+    });
+    if (alreadyPaid)
+      return showError(
+        `${employeeName} has already received salary for this month`
+      );
+
     await addDoc(collection(db, "salaries"), {
       employeeName,
       amount: parseFloat(salaryAmount),
@@ -156,6 +182,7 @@ export default function ExpensesPage() {
     fetchSalaries();
     showSuccess("Salary added");
   }
+
   async function deleteSalary(id) {
     const res = await showDeleteConfirmation("this salary", "salary");
     if (!res.isConfirmed) return;
@@ -177,17 +204,40 @@ export default function ExpensesPage() {
   useEffect(() => {
     if (!employeeSearch) return setEmployeeResults([]);
     async function searchEmp() {
-      const q1 = query(collection(db, "employees"));
-      const snap = await getDocs(q1);
-      const results = snap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .filter(
-          (emp) =>
-            emp.empId?.toString().includes(employeeSearch) ||
-            emp.name?.toLowerCase().includes(employeeSearch.toLowerCase())
-        );
-      setEmployeeResults(results);
+      const results = [];
+
+      const q1 = query(
+        collection(db, "employees"),
+        where("empId", ">=", employeeSearch),
+        where("empId", "<=", employeeSearch + "\uf8ff")
+      );
+      const s1 = await getDocs(q1);
+      s1.forEach((doc) => results.push({ id: doc.id, ...doc.data() }));
+
+      const q2 = query(
+        collection(db, "employees"),
+        where("name", ">=", employeeSearch),
+        where("name", "<=", employeeSearch + "\uf8ff")
+      );
+      const s2 = await getDocs(q2);
+      s2.forEach((doc) => results.push({ id: doc.id, ...doc.data() }));
+
+      const unique = Object.values(
+        results.reduce((acc, cur) => {
+          acc[cur.id] = cur;
+          return acc;
+        }, {})
+      );
+
+      setEmployeeResults(unique);
+
+      if (unique.length === 1) {
+        setEmployeeName(unique[0].name);
+        setEmployeeSearch(unique[0].name);
+        setEmployeeResults([]);
+      }
     }
+
     searchEmp();
   }, [employeeSearch]);
 
@@ -300,7 +350,7 @@ export default function ExpensesPage() {
           </tbody>
         </table>
         {/* ✅ Pagination */}
-        <div>
+        <div className="pagination-ui">
           <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
             Prev
           </button>
@@ -309,7 +359,7 @@ export default function ExpensesPage() {
             Page {page} of {Math.ceil(expenseList.length / perPage) || 1}{" "}
           </span>
           <button
-            disabled={page === Math.ceil(expenseList.length / perPage)}
+            disabled={page >= Math.ceil(expenseList.length / perPage)}
             onClick={() => setPage((p) => p + 1)}
           >
             Next
@@ -350,7 +400,7 @@ export default function ExpensesPage() {
           </tbody>
         </table>
         {/* ✅ Pagination */}
-        <div>
+        <div className="pagination-ui">
           <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
             Prev
           </button>
@@ -359,7 +409,7 @@ export default function ExpensesPage() {
             Page {page} of {Math.ceil(salaryList.length / perPage) || 1}{" "}
           </span>
           <button
-            disabled={page === Math.ceil(salaryList.length / perPage)}
+            disabled={page >= Math.ceil(salaryList.length / perPage)}
             onClick={() => setPage((p) => p + 1)}
           >
             Next
@@ -370,20 +420,32 @@ export default function ExpensesPage() {
   }
 
   // ===== Reset Report =====
-    function resetReport() {
+  function resetReport() {
     const today = new Date().toISOString().split("T")[0];
     setFromDate(today);
     setToDate(today);
     setReportExpenses([]);
     setReportSalaries([]);
-    }
+    setPageReportExpenses(1);
+    setPageReportSalaries(1);
+  }
 
-    // ===== Auto-reset when selecting Reports tab =====
-    useEffect(() => {
+  // ===== Auto-reset when selecting Reports tab =====
+  useEffect(() => {
     if (tab === "reports") {
-        resetReport();
+      resetReport();
     }
-    }, [tab]);
+  }, [tab]);
+
+  // Reset pagination when reportExpenses changes
+  useEffect(() => {
+    setPageReportExpenses(1);
+  }, [reportExpenses]);
+
+  // Reset pagination when reportSalaries changes
+  useEffect(() => {
+    setPageReportSalaries(1);
+  }, [reportSalaries]);
 
   if (loading) return <ContentLoader />;
 
@@ -456,6 +518,17 @@ export default function ExpensesPage() {
               className="searchBy"
               onChange={(e) => setEmployeeSearch(e.target.value)}
               placeholder="Search Employee by ID or name"
+              onKeyDown={(e) => {
+                if (
+                  (e.key === "Enter" || e.key === "Tab") &&
+                  employeeResults.length > 0
+                ) {
+                  e.preventDefault();
+                  setEmployeeName(employeeResults[0].name);
+                  setEmployeeSearch(employeeResults[0].name);
+                  setEmployeeResults([]);
+                }
+              }}
             />
             {employeeResults.length > 0 && (
               <ul className="autocomplete-list">
@@ -468,7 +541,7 @@ export default function ExpensesPage() {
                       setEmployeeResults([]);
                     }}
                   >
-                    {emp.name} ({emp.empId})
+                    ({emp.empId}) - {emp.name}
                   </li>
                 ))}
               </ul>
@@ -504,70 +577,141 @@ export default function ExpensesPage() {
         </>
       )}
 
-     {tab === "reports" && (
-  <section>
-    <h2>Expense Report</h2>
-    <div className="form-inline">
-      <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
-      <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
-      <button onClick={generateReport} className="billing-btn success"><FiSearch /> Generate</button>
-      <button type="button" onClick={resetReport} className="billing-btn danger"><FiX /> Reset</button>
-    </div>
+      {tab === "reports" && (
+        <section>
+          <h2>Expense Report</h2>
+          <div className="form-inline">
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+            />
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+            />
+            <button onClick={generateReport} className="billing-btn success">
+              <FiSearch /> Generate
+            </button>
+            <button
+              type="button"
+              onClick={resetReport}
+              className="billing-btn danger"
+            >
+              <FiX /> Reset
+            </button>
+          </div>
 
-    <h3>Expenses</h3>
-    <table className="table">
-      <thead>
-        <tr><th>Name</th><th>Amount</th><th>Type</th><th>Date</th></tr>
-      </thead>
-      <tbody>
-        {reportExpenses.length > 0 ? (
-          reportExpenses.map(e => (
-            <tr key={e.id}>
-              <td>{e.name}</td>
-              <td>₹{e.amount}</td>
-              <td>{e.type}</td>
-              <td>{e.date}</td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan="4" style={{ textAlign: "center" }}>No expenses found in date range</td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-    <p className="report-total">
-      <b>Total Expenses:</b> ₹{reportExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0)}
-    </p>
+          <h3>Expenses</h3>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Amount</th>
+                <th>Type</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reportExpenses.length > 0 ? (
+                newPaginateData(reportExpenses, pageReportExpenses).map((e) => (
+                  <tr key={e.id}>
+                    <td>{e.name}</td>
+                    <td>₹{e.amount}</td>
+                    <td>{e.type}</td>
+                    <td>{e.date}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4">No expenses found in date range</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          {/* Pagination controls */}
+          <div className="pagination-ui">
+            <button
+              disabled={pageReportExpenses === 1}
+              onClick={() => setPageReportExpenses((p) => p - 1)}
+            >
+              Prev
+            </button>
+            <span>
+              Page {pageReportExpenses} of{" "}
+              {Math.ceil(reportExpenses.length / rowsPerPage) || 1}
+            </span>
+            <button
+              disabled={
+                pageReportExpenses >=
+                Math.ceil(reportExpenses.length / rowsPerPage)
+              }
+              onClick={() => setPageReportExpenses((p) => p + 1)}
+            >
+              Next
+            </button>
+          </div>
+          <p className="report-total">
+            <b>Total Expenses:</b> ₹
+            {reportExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0)}
+          </p>
 
-    <h3>Salaries</h3>
-    <table className="table">
-      <thead>
-        <tr><th>Employee</th><th>Amount</th><th>Date</th><th>Mode</th></tr>
-      </thead>
-      <tbody>
-        {reportSalaries.length > 0 ? (
-          reportSalaries.map(s => (
-            <tr key={s.id}>
-              <td>{s.employeeName}</td>
-              <td>₹{s.amount}</td>
-              <td>{s.date}</td>
-              <td>{s.paymentMode}</td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan="4" style={{ textAlign: "center" }}>No salaries found in date range</td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-    <p className="report-total">
-      <b>Total Salaries:</b> ₹{reportSalaries.reduce((sum, s) => sum + Number(s.amount || 0), 0)}
-    </p>
-  </section>
-)}
-
+          <h3>Salaries</h3>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Mode</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reportSalaries.length > 0 ? (
+                newPaginateData(reportSalaries, pageReportSalaries).map((s) => (
+                  <tr key={s.id}>
+                    <td>{s.employeeName}</td>
+                    <td>₹{s.amount}</td>
+                    <td>{s.date}</td>
+                    <td>{s.paymentMode}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4">No salaries found in date range</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          {/* Pagination controls */}
+          <div className="pagination-ui">
+            <button
+              disabled={pageReportSalaries === 1}
+              onClick={() => setPageReportSalaries((p) => p - 1)}
+            >
+              Prev
+            </button>
+            <span>
+              Page {pageReportSalaries} of{" "}
+              {Math.ceil(reportSalaries.length / rowsPerPage) || 1}
+            </span>
+            <button
+              disabled={
+                pageReportSalaries >=
+                Math.ceil(reportSalaries.length / rowsPerPage)
+              }
+              onClick={() => setPageReportSalaries((p) => p + 1)}
+            >
+              Next
+            </button>
+          </div>
+          <p className="report-total">
+            <b>Total Salaries:</b> ₹
+            {reportSalaries.reduce((sum, s) => sum + Number(s.amount || 0), 0)}
+          </p>
+        </section>
+      )}
     </div>
   );
 }

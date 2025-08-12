@@ -216,7 +216,7 @@ export default function EmployeesPage() {
         <div className="pagination-ui">
           <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Prev</button>
           <span>Page {currentPage} of {totalPages}</span>
-          <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
+          <button disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => p + 1)}>Next</button>
         </div>
       )}
     </section>

@@ -348,7 +348,7 @@
 .pagination-ui {
   margin-top: 1em;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: 0.8em;
 }
@@ -843,24 +843,6 @@
 .icon-btn.cancel {
   color: #6b7280;
 }
-.pagination-ui {
-  display: flex;
-  justify-content: center;
-  gap: 1em;
-  margin-top: 1em;
-}
-.pagination-ui button {
-  background: #2563eb;
-  color: #fff;
-  border: none;
-  padding: 0.3em 0.7em;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.pagination-ui button:disabled {
-  background: #93c5fd;
-  cursor: not-allowed;
-}
 
 /* Billing Page Container */
 .billing-flex-layout {
@@ -1263,7 +1245,7 @@
   max-height: 180px;
   overflow-y: auto;
   padding: 0;
-  top: unset;
+  top: 10em;
   left: unset;
   right: unset;
 }
@@ -1287,34 +1269,6 @@
   border-radius: 7px;
 }
 
-/* PAGINATION CONTROLS */
-.expenses-page .pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.35em;
-  margin: 0.7em 0 1.5em 0;
-  font-size: 1.03em;
-  font-weight: bold;
-}
-.expenses-page .pagination-controls button {
-  padding: 0.28em 0.9em;
-  border-radius: 6px;
-  border: none;
-  background: #e2e8f0;
-  color: #2563eb;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.14s;
-}
-.expenses-page .pagination-controls button:disabled {
-  background: #f3f4f6;
-  color: #94a3b8;
-  cursor: not-allowed;
-}
-.expenses-page .pagination-controls button:hover:not(:disabled) {
-  background: #dbeafe;
-  color: #1e40af;
-}
 
 /* REPORTS TOTALS */
 .expenses-page .report-total {
@@ -1324,7 +1278,7 @@
   color: #059669;
 }
 
-.expenses-page input.searchBy::placeholder {
+.expenses-page input.searchBy::placeholder,.billing-card input::placeholder{
   font-size: 0.7em;
 }
 

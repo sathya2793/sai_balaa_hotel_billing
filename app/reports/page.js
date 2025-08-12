@@ -25,6 +25,23 @@ export default function ReportPage() {
   const [viewBill, setViewBill] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Each table will track its own page
+  const [pageBillWise, setPageBillWise] = useState(1);
+  const [pageCancelled, setPageCancelled] = useState(1);
+  const [pageProductWise, setPageProductWise] = useState(1);
+  const [pageSectionWise, setPageSectionWise] = useState(1);
+  const [pageCaptainWise, setPageCaptainWise] = useState(1);
+  const [pageIngredientWise, setPageIngredientWise] = useState(1);
+  const [pageGstReport, setPageGstReport] = useState(1);
+  const [pageCancelledBills, setPageCancelledBills] = useState(1);
+
+  const rowsPerPage = 10;
+
+  function paginateData(data, page) {
+    const start = (page - 1) * rowsPerPage;
+    return data.slice(start, start + rowsPerPage);
+  }
+
   function resetFilters() {
     const today = new Date().toISOString().split("T")[0];
     setFromDate(today);
@@ -179,7 +196,7 @@ export default function ReportPage() {
           </thead>
           <tbody>
             {billWise.length ? (
-              billWise.map((b) => (
+              paginateData(billWise, pageBillWise).map((b) => (
                 <tr key={b.id}>
                   <td>{b.billNo}</td>
                   <td>{b.date}</td>
@@ -196,6 +213,28 @@ export default function ReportPage() {
             )}
           </tbody>
         </table>
+        {/* Pagination controls */}
+        <div className="pagination-ui">
+          <button
+            disabled={pageBillWise === 1}
+            onClick={() => setPageBillWise(p => p - 1)}
+          >
+            Prev
+          </button>
+          <span>
+            Page {pageBillWise} of {Math.ceil(billWise.length / rowsPerPage)  || 1}
+          </span>
+          <button
+            disabled={pageBillWise >= Math.ceil(billWise.length / rowsPerPage)}
+            onClick={() => setPageBillWise(p => p + 1)}
+          >
+            Next
+          </button>
+        </div>
+         <p className="report-total">
+            <b>Total Bill Amount:</b> ₹
+            {billWise.reduce((sum, s) => sum + Number(s.total || 0), 0)}
+          </p>
       </div>
 
       {/* Product Item Wise Total */}
@@ -212,7 +251,7 @@ export default function ReportPage() {
           </thead>
           <tbody>
             {productWise.length ? (
-              productWise.map((p, i) => (
+              paginateData(productWise, pageProductWise).map((p, i) => (
                 <tr key={i}>
                   <td>{p.name}</td>
                   <td>{p.section}</td>
@@ -227,6 +266,24 @@ export default function ReportPage() {
             )}
           </tbody>
         </table>
+         {/* Pagination controls */}
+        <div className="pagination-ui">
+          <button
+            disabled={pageProductWise === 1}
+            onClick={() => setPageProductWise(p => p - 1)}
+          >
+            Prev
+          </button>
+          <span>
+            Page {pageProductWise} of {Math.ceil(productWise.length / rowsPerPage)  || 1}
+          </span>
+          <button
+            disabled={pageProductWise >= Math.ceil(productWise.length / rowsPerPage)}
+            onClick={() => setPageProductWise(p => p + 1)}
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       {/* Section Wise Total */}
@@ -242,7 +299,7 @@ export default function ReportPage() {
           </thead>
           <tbody>
             {sectionWise.length ? (
-              sectionWise.map((s, i) => (
+              paginateData(sectionWise,pageSectionWise).map((s, i) => (
                 <tr key={i}>
                   <td>{s.section}</td>
                   <td>{s.qty}</td>
@@ -256,6 +313,24 @@ export default function ReportPage() {
             )}
           </tbody>
         </table>
+         {/* Pagination controls */}
+        <div className="pagination-ui">
+          <button
+            disabled={pageSectionWise === 1}
+            onClick={() => setPageSectionWise(p => p - 1)}
+          >
+            Prev
+          </button>
+          <span>
+            Page {pageSectionWise} of {Math.ceil(sectionWise.length / rowsPerPage) || 1}
+          </span>
+          <button
+            disabled={pageSectionWise >= Math.ceil(sectionWise.length / rowsPerPage)}
+            onClick={() => setPageSectionWise(p => p + 1)}
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       {/* Captain Wise Total */}
@@ -272,7 +347,7 @@ export default function ReportPage() {
           </thead>
           <tbody>
             {captainWise.length ? (
-              captainWise.map((c, i) => (
+              paginateData(captainWise,pageCaptainWise).map((c, i) => (
                 <tr key={i}>
                   <td>{c.name}</td>
                   <td>{c.qty}</td>
@@ -287,6 +362,24 @@ export default function ReportPage() {
             )}
           </tbody>
         </table>
+         {/* Pagination controls */}
+        <div className="pagination-ui">
+          <button
+            disabled={pageCaptainWise === 1}
+            onClick={() => setPageCaptainWise(p => p - 1)}
+          >
+            Prev
+          </button>
+          <span>
+            Page {pageCaptainWise} of {Math.ceil(captainWise.length / rowsPerPage) || 1}
+          </span>
+          <button
+            disabled={pageCaptainWise >= Math.ceil(captainWise.length / rowsPerPage)}
+            onClick={() => setPageCaptainWise(p => p + 1)}
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       {/* Ingredient Wise */}
@@ -301,7 +394,7 @@ export default function ReportPage() {
           </thead>
           <tbody>
             {ingredientWise.length ? (
-              ingredientWise.map((iRow, i) => (
+              paginateData(ingredientWise,pageIngredientWise).map((iRow, i) => (
                 <tr key={i}>
                   <td>{iRow.name}</td>
                   <td>{iRow.qty}</td>
@@ -314,6 +407,24 @@ export default function ReportPage() {
             )}
           </tbody>
         </table>
+         {/* Pagination controls */}
+        <div className="pagination-ui">
+          <button
+            disabled={pageIngredientWise === 1}
+            onClick={() => setPageIngredientWise(p => p - 1)}
+          >
+            Prev
+          </button>
+          <span>
+            Page {pageIngredientWise} of {Math.ceil(ingredientWise.length / rowsPerPage) || 1}
+          </span>
+          <button
+            disabled={pageIngredientWise >= Math.ceil(ingredientWise.length / rowsPerPage)}
+            onClick={() => setPageIngredientWise(p => p + 1)}
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       {/* GST Report */}
@@ -329,7 +440,7 @@ export default function ReportPage() {
           </thead>
           <tbody>
             {gstReport.length ? (
-              gstReport.map((g, i) => (
+              paginateData(gstReport,pageGstReport).map((g, i) => (
                 <tr key={i}>
                   <td>{g.percent}%</td>
                   <td>₹{g.taxable}</td>
@@ -343,6 +454,28 @@ export default function ReportPage() {
             )}
           </tbody>
         </table>
+         {/* Pagination controls */}
+        <div className="pagination-ui">
+          <button
+            disabled={pageGstReport === 1}
+            onClick={() => setPageGstReport(p => p - 1)}
+          >
+            Prev
+          </button>
+          <span>
+            Page {pageGstReport} of {Math.ceil(gstReport.length / rowsPerPage) || 1}
+          </span>
+          <button
+            disabled={pageGstReport >= Math.ceil(gstReport.length / rowsPerPage)}
+            onClick={() => setPageGstReport(p => p + 1)}
+          >
+            Next
+          </button>
+        </div>
+        <p className="report-total">
+            <b>Total GST Collected Amount:</b> ₹
+            {gstReport.reduce((sum, s) => sum + Number(s.gst || 0), 0)}
+          </p>
       </div>
 
       {/* Cancelled Bills */}
@@ -360,7 +493,7 @@ export default function ReportPage() {
           </thead>
           <tbody>
             {cancelledBills.length ? (
-              cancelledBills.map((cb) => (
+              paginateData(cancelledBills,pageCancelledBills).map((cb) => (
                 <tr key={cb.id}>
                   <td>{cb.billNo}</td>
                   <td>{cb.date}</td>
@@ -380,6 +513,24 @@ export default function ReportPage() {
             )}
           </tbody>
         </table>
+         {/* Pagination controls */}
+        <div className="pagination-ui">
+          <button
+            disabled={pageCancelledBills === 1}
+            onClick={() => setPageCancelledBills(p => p - 1)}
+          >
+            Prev
+          </button>
+          <span>
+            Page {pageCancelledBills} of {Math.ceil(cancelledBills.length / rowsPerPage) || 1}
+          </span>
+          <button
+            disabled={pageCancelledBills >= Math.ceil(cancelledBills.length / rowsPerPage)}
+            onClick={() => setPageCancelledBills(p => p + 1)}
+          >
+            Next
+          </button>
+        </div>
       </div>
       {viewBill && (
   <div className="modal-overlay" onClick={() => setViewBill(null)}>
@@ -419,7 +570,24 @@ export default function ReportPage() {
           ))}
         </tbody>
       </table>
-
+       {/* Pagination controls */}
+        <div className="pagination-ui">
+          <button
+            disabled={pageBillWise === 1}
+            onClick={() => setPageBillWise(p => p - 1)}
+          >
+            Prev
+          </button>
+          <span>
+            Page {pageBillWise} of {Math.ceil(billWise.length / rowsPerPage) || 1}
+          </span>
+          <button
+            disabled={pageBillWise >= Math.ceil(billWise.length / rowsPerPage)}
+            onClick={() => setPageBillWise(p => p + 1)}
+          >
+            Next
+          </button>
+        </div>
       <div style={{marginTop:"1em", textAlign:"right"}}>
         <button onClick={() => setViewBill(null)}>Close</button>
       </div>
