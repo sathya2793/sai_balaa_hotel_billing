@@ -46,7 +46,8 @@ export default function LoginPage() {
     try {
       await sendPasswordResetEmail(auth, email);
       showSuccess(`Password reset sent to: ${email}`);
-    } catch {
+    } catch (error) {
+      console.error("Reset email error:", error);
       showError("Reset email failed. Try again later.");
     }
   }

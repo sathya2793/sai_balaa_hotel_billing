@@ -207,7 +207,7 @@ export default function ManageUsersPage() {
               style={{
                 position: "inherit",
                 right: "2rem",
-                top: "23%",
+                top: "16%",
                 transform: "translateY(-50%)",
                 cursor: "pointer",
                 color: "#555",
