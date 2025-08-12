@@ -23,6 +23,8 @@ import {
   FiPlus,
   FiX,
   FiKey,
+  FiEye, 
+  FiEyeOff
 } from "react-icons/fi";
 import {
   showSuccess,
@@ -47,6 +49,7 @@ export default function ManageUsersPage() {
   const [editData, setEditData] = useState({ username: "", role: "" });
   const [loading, setLoading] = useState(true);
   const [loadingPage, setLoadingPage] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   function clearForm() {
     setForm(initialForm);
   }
@@ -191,13 +194,32 @@ export default function ManageUsersPage() {
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             required
           />
-          <input
-            type="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            required
-          />
+          <div style={{ position: "relative" }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
+            />
+            <span
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: "inherit",
+                right: "2rem",
+                top: "23%",
+                transform: "translateY(-50%)",
+                cursor: "pointer",
+                color: "#555",
+              }}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              role="button"
+              tabIndex={0}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowPassword(!showPassword); }}
+            >
+              {showPassword ? <FiEye size={20} /> : <FiEyeOff size={20} />}
+            </span>
+            </div>
           <select
             value={form.role}
             onChange={(e) => setForm({ ...form, role: e.target.value })}

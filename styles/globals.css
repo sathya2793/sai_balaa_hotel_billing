@@ -107,6 +107,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
 }
 .login-desc-ui {
   color: #636e72;
@@ -786,6 +787,9 @@
   padding: 0.4em 0.6em;
   border-radius: 5px;
   border: 1px solid #cbd5e1;
+}
+.employees-form input{
+  height: 4vh;
 }
 .emp-btn.primary {
   background: #2563eb;
